@@ -8,8 +8,18 @@ module Yeelight
       @port = port
     end
 
+    def on?
+      res = get_prop('power')
+      res.first == 'on'
+    end
+
+    def off?
+      res = get_prop('power')
+      res.first == 'off'
+    end
+
     def get_prop(values)
-      cmd = "{\"id\":1,\"method\":\"get_prop\",\"params\":[#{values}]}\r\n"
+      cmd = call(1, 'get_prop', values)
       request(cmd)
     end
 
@@ -29,11 +39,15 @@ module Yeelight
 
     def response(data)
       json = JSON.parse(data)
-      result = {
-        status: json['result'] ? true : false,
-        data: json
-      }
-      JSON.generate(result)
+      json['result']
+    end
+
+    def call(id, method, params)
+      params = [params] unless params.class == Array
+      { id: id,
+        method: method,
+        params: params
+      }.to_json + "\r\n"
     end
   end
 end
